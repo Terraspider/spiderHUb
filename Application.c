@@ -1,4 +1,4 @@
- /*
+ /*************************************************************************************************
  * Copyright 2017
  *
  * Authors:            	Shibin P
@@ -7,10 +7,10 @@
  * Description:         Middleware between main program and end protocols.
  *                      Processes the data.
  * Version:             Pre Alpha
- *  haiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii
+ *
  * Add copyright notice here
  *
- */
+ *************************************************************************************************/
 
 
 #include <unistd.h>
@@ -32,14 +32,10 @@
 #include <net/if.h>
 #include <arpa/inet.h>
 
-int gln=0;
-char nocean_id[50]; 
-//char buffer_for_response[100];
-void weather_report_generator();
-int xstrsearch ( char * s1, char * s2 );
+
 rx_pack response_data[200];
 Json_reg_topic json_hdr_count[50];
-int cmmd;
+
 unsigned char ip_address[16];
 int net_status = 256;
 extern char mqt_buff_head, mqt_buff_tail;
@@ -173,97 +169,15 @@ int system_handler(void)
      		 err_val = Device_configurations(proto_dump);
      		 break;
      	case weather_report :
-     		 printf("*********weather_report**********\n");
+     		 printf("weather_report\n");
      		 weather_report_generator();
      		 err_val = false;
-     		break;
-	case enocean :
-		 printf("XXXXXXX Now you can play with bluetooth switch XXXXXXXX\n");
-//                 bluetooth_switch();
-		 //printf("*****returned from bluetooth switch ***********\n");
-		 //proto_dump = validate_req_type(ble_proto, proto_id);
-		 //err_val = Device_configurations(proto_dump);
-                 //err_val = false;
+     		 break;
+     	case enocean :
+		 	 printf("Now you can play with blue tooth switch \n");
+		 	 bluetooth_switch();
+		 	 break;
 
-//int bluetooth_switch()
-//{
-	    int test=0;
-        sleep(2);
-        system("./bluetooth_voice_alert.sh you can operate  nano switch now");
-        sleep(2);
-        while(test<1)
-        {
-        char* nano = ble_data_read();
-        printf("Checking Nano Switch input: %s\n",nano);
-#if 0
-       // Returns first token
-       char *token = strtok(nano, ",");
-       printf("%s\n", token);
-       //int gln=0;
-       // Keep printing tokens while one of the
-       // delimiters present in nano[].
-  
-     while (token != NULL)
-        {
-       // if(gln==0){
-        printf("gw_id[]: %s\n", token);
-        strcpy(gw_id,token);
-        token = strtok(NULL, ",");
-        //gln++;
-       // }
-        //else if(gln==1){
-        printf("proto_id[]: %s\n", token);
-        //strcpy(proto_id,token);
-        token = strtok(NULL, ",");
-        //gln++;
-        //}
-        //else if(gln==2){
-        printf("dev_type[]: %s\n", token);
-        //strcpy(dev_type,token);
-        token = strtok(NULL, ",");
-        //gln++;
-        //}
-        //else if(gln==3){
-        printf("cmd_id[]: %s\n", token);
-        strcpy(nocean_id,"ON12");
-        token = strtok(NULL, ",");
-        //gln++;
-        //}
-          //       proto_dump = validate_req_type(ble_proto, proto_id);
-            //     err_val = Device_configurations(proto_dump);
-        }
-#endif
-        sleep(1);
-	if(xstrsearch(nano,"ON12") != -1)
-	{
-	strcpy(nocean_id,"ON12");
-	}
-	if(xstrsearch(nano,"ON13") != -1)
-        {
-        strcpy(cmd_id,"ON13");
-        }
-	if(xstrsearch(nano,"OFF12") != -1)
-        {
-        strcpy(cmd_id,"OFF12");
-        }
-	if(xstrsearch(nano,"OFF13") != -1)
-        {
-        strcpy(cmd_id,"OFF13");
-        }
-
-
-       proto_dump = validate_req_type(ble_proto, proto_id);
-       err_val = Device_configurations(proto_dump);
-
-        test=(test+1);
-        gln=0;
-        }
-        test=0;
-
-//        return 1;
-//}
-
-		 break;
      	default :
      		 printf("Success : Invalid request_type %s\n", req_type);
      		 err_val = false;
@@ -424,30 +338,40 @@ int zigbee_iface_mgt()
 ======================================================================*/
 int Device_configurations(int status)
 {
- printf("entered device configurations\n");
  int err_val = true;
  char streaming_cmd[500] = {0};
- if (status == bluetooth_proto)						    {
-  switch(validate_req_type(audio, dev_type))			{
-  case audio :
-	   if((strcmp(cmd_id,"ENABLE") == 0))	 	        {
+
+  if (status == bluetooth_proto)
+  {
+   switch(validate_req_type(audio, dev_type))
+   {
+    case audio :
+	   if((strcmp(cmd_id,"ENABLE") == 0))
+	   {
 		   system("./start_BLE.sh");
 		   sleep(2);
 		   printf("Success : BLUETOOTH Device Switched ON\n");
 		   device_config_response("AUDIO ENABLE", proto_id);
 		   system("./bluetooth_voice_alert.sh");
-		   enable_ble = 'Y';				 	        }
-	   else if ((strcmp(cmd_id,"DISABLE") == 0))	   	{
+		   enable_ble = 'Y';
+	   }
+	   else if ((strcmp(cmd_id,"DISABLE") == 0))
+	   {
 		   system("./stop_BLE.sh");
 		   sleep(2);
 		   device_config_response("AUDIO DISABLE", proto_id);
 		   printf("Success : BLUETOOTH Device Switched OFF\n");
-		   enable_ble = 'N';						   	}
-	   else{
-		   err_val = false;								}
+		   enable_ble = 'N';
+	   }
+	   else
+	   {
+		   err_val = false;
+	   }
 	   break;
-  case config :
-	   if((strcmp(cmd_id,"PLAY") == 0))	  	            {
+    case config :
+#if 0
+	   if((strcmp(cmd_id,"PLAY") == 0))
+	   {
 		   printf("Success : PLAY Music\n");
 		   system("./start_music.sh");
 		   device_config_response("CONFIG PLAY", proto_id);	  	}
@@ -461,203 +385,238 @@ int Device_configurations(int status)
 		   device_config_response("CONFIG PAUSE", proto_id);		}
 	   else {
 		   err_val = false;	}
+#endif
 	   break;
    default :
  	   	   err_val = false;
  	   break;
   }	}
- else if (status == ble_proto)						    {
-  switch(validate_req_type(audio, dev_type))			{
+ else if (status == ble_proto)
+  {
+  switch(validate_req_type(audio, dev_type))
+  {
    case peripherals :
-	 if((strcmp(cmd_id,"ENABLE") == 0))	 	        	{
-		 //call ble_gpio_enable
+	 if((strcmp(cmd_id,"ENABLE") == 0))
+	 {
+		//call ble_gpio_enable
 		ble_enable();
 		printf("BLE Enable\n");
 		sleep(2);
-		device_config_response("BLE ENABLE", proto_id);			}
-	 else if ((strcmp(cmd_id,"DISABLE") == 0))	   		{
-		 //Disable ble_gpio
+		device_config_response("BLE ENABLE", proto_id);
+	 }
+	 else if(strcmp(cmd_id,"DISABLE") == 0)
+	 {
+	    //Disable ble_gpio
 		ble_disable();
 		printf("BLE Disable\n");
 		sleep(2);
-		device_config_response("BLE DISABLE", proto_id);			}
+		device_config_response("BLE DISABLE", proto_id);
+	 }
    break;
    case config :
-	   if((strcmp(cmd_id,"UP") == 0))	  	            {
-		   //send "up" command to ble for device drive
+	   if(strcmp(cmd_id,"UP") == 0)
+	   {
+		//send "up" command to ble for device drive
 		ble_data_write("up");
 		printf("BLE data write done\n");
 		sleep(2);
-		device_config_response("UP", proto_id);					}
-	   else if((strcmp(cmd_id,"DOWN") == 0))	  	    {
-		   //send "down" command to ble for device drive
+		device_config_response("UP", proto_id);
+	   }
+	   else if((strcmp(cmd_id,"DOWN") == 0))
+	   {
+		//send "down" command to ble for device drive
 		ble_data_write("down");
 		printf("BLE data write done\n");
 		sleep(2);
-		device_config_response("DOWN", proto_id);					}
+		device_config_response("DOWN", proto_id);
+	   }
 	   break;
    default :
 	    device_config_response("NOT SUPPORT", proto_id);
 	    printf("Success : Audio not support\n");
 	    err_val = false;
 	    break;
-	 }
+   }
  }
+/* ========================== End of BLE ===============================*/
 
- else if (status == cam_proto){
-	 printf("Entered for camera operation..................\n");
+ else if (status == cam_proto)
+ {
+	//printf("Entered for camera operation\n");
     switch(validate_req_type(search, dev_type))
     {
     case search :
-     printf("Searching for Cameras..................\n");
-    system("./get-onvif-cameras.sh");
-    char cam_name[1000];
-    FILE *cam = fopen("onvif-camera-list.txt","r");
-         if (cam == NULL)      {
-            printf("Camera list file missing!\n");   }
-         else   {
+     printf("Success : Searching for Cameras\n");
+     system("./get-onvif-cameras.sh");
+     char cam_name[1000];
+     FILE *cam = fopen("onvif-camera-list.txt","r");
+         if (cam == NULL)
+         {
+            printf("Error : Camera list file missing!\n");
+         }
+         else
+         {
             fscanf(cam,"%[^\n]", cam_name);
             fclose(cam);
-            printf("Camera list: %s\r\n",cam_name);        }
-
-    device_config_response(cam_name, proto_id);
+            printf("Camera list: %s\r\n",cam_name);
+         }
+     device_config_response(cam_name, proto_id);
     break;
     //Restream to another IP, not activated currently
     case stream :
-	printf("userip::::::::: %s\r\n",UserIP);
-	strcpy(streaming_cmd,"ffmpeg -rtsp_transport tcp -i rtsp://");
-	strcat(streaming_cmd,CameraIP);
-	strcat(streaming_cmd,":10554/tcp/av0_0 -preset slow -c:v copy -f mpegts udp://");
-	strcat(streaming_cmd,UserIP);
-	strcat(streaming_cmd,":1111 -hide_banner");
-	printf("Streaming Command >>>>>>>>>>>>>>>>>>>>>>>: %s\r\n",streaming_cmd);
-	system(streaming_cmd);// "> /dev/null 2>&1 & disown"
- 	err_val = false;
+	 printf("Success : user ip: %s\r\n",UserIP);
+	 strcpy(streaming_cmd,"ffmpeg -rtsp_transport tcp -i rtsp://");
+	 strcat(streaming_cmd,CameraIP);
+	 strcat(streaming_cmd,":10554/tcp/av0_0 -preset slow -c:v copy -f mpegts udp://");
+	 strcat(streaming_cmd,UserIP);
+	 strcat(streaming_cmd,":1111 -hide_banner");
+	 printf("Success : Streaming Command : %s\r\n",streaming_cmd);
+	 system(streaming_cmd);// "> /dev/null 2>&1 & disown"
+ 	 err_val = false;
     break;
 
     case int_motion :
-        printf("");
-	char cam_motion[200]="";
-	printf("Enabling camera controls, Please wait.........\n");
-	strcpy(cam_motion,"./Camera_motion.sh ");
-	strcat(cam_motion, CameraIP);
-	strcat(cam_motion, "> /dev/null 2>&1 & disown");
-	//char cam_motion[200]= "./Camera_motion.sh 192.168.100.158 > /dev/null 2>&1 & disown";
-	printf("Camera_call ------------->: %s\r\n",cam_motion);
-        system(cam_motion);
-        device_config_response("Enabling camera controls this will take 1 minute Please wait", proto_id);
-	system("./bluetooth_voice_alert.sh Enabling camera controls. This will take 1 minute. Please wait");
+     char cam_motion[200]="";
+	 printf("Enabling camera controls, Please wait\n");
+	 strcpy(cam_motion,"./Camera_motion.sh ");
+	 strcat(cam_motion, CameraIP);
+	 strcat(cam_motion, "> /dev/null 2>&1 & disown");
+	 //char cam_motion[200]= "./Camera_motion.sh 192.168.100.158 > /dev/null 2>&1 & disown";
+	 printf("Camera_call %s\r\n",cam_motion);
+     system(cam_motion);
+     device_config_response("Enabling camera controls this will take 1 minute Please wait", proto_id);
+	 system("./bluetooth_voice_alert.sh Enabling camera controls. This will take 1 minute. Please wait");
     break;
 
     case up :
-	printf("Camera is moving up^^^^^^^^^^^\n");
-	printf("camera direction::::::::: %s\r\n",dev_type);
-        system("echo up > /WiFi_For_SpiderHub/onvif/python-onvif/examples/Direction_file.txt");
-        err_val = false;
+	 printf("Success : Camera is moving up ^^\n");
+	 //printf("camera direction::::::::: %s\r\n",dev_type);
+     system("echo up > /WiFi_For_SpiderHub/onvif/python-onvif/examples/Direction_file.txt");
+     err_val = false;
     break;
     case down :
-	printf("Camera is moving down.........\n");
-        system("echo dn > /WiFi_For_SpiderHub/onvif/python-onvif/examples/Direction_file.txt");
-        err_val = false;
+	 printf("Success : Camera is moving down\n");
+     system("echo dn > /WiFi_For_SpiderHub/onvif/python-onvif/examples/Direction_file.txt");
+     err_val = false;
     break;
     case left :
-	printf("Camera is moving left<<<<<<<<<\n");
-        system("echo lt > /WiFi_For_SpiderHub/onvif/python-onvif/examples/Direction_file.txt");
-        err_val = false;
+	 printf("Success : Camera is moving left <<\n");
+     system("echo lt > /WiFi_For_SpiderHub/onvif/python-onvif/examples/Direction_file.txt");
+     err_val = false;
     break;
     case right :
-	printf("Camera is moving right>>>>>>>>>\n");
-        system("echo rt > /WiFi_For_SpiderHub/onvif/python-onvif/examples/Direction_file.txt");
-        err_val = false;
+     printf("Success : Camera is moving right >>\n");
+     system("echo rt > /WiFi_For_SpiderHub/onvif/python-onvif/examples/Direction_file.txt");
+     err_val = false;
     break;
     case stop :
-	printf("Killed Streaming x-x-x-x-x-x-x-x-x\n");
-        system("pkill ffmpeg");
-        err_val = false;
+	 printf("Success : Killed Streaming\n");
+     system("pkill ffmpeg");
+     err_val = false;
     break;
     default :
 //enter field here
-	printf("Invalid Camera Command!!!\n");
-    	err_val = false;
+	printf("Error : Invalid Camera Command!!!\n");
+    err_val = false;
     break;
-     }
+   }
 }
+/*==================== End of Camera ===========================================*/
 
  else if (status == zigbee_proto)					    {
 	printf("Entered to zigbee ..................dev:type : %s\n", dev_type);
 
     switch(validate_req_type(audio, dev_type))			{
     case peripherals :
- 	 if((strcmp(cmd_id,"ENABLE") == 0))	 	        	{
+ 	 if((strcmp(cmd_id,"ENABLE") == 0))
+ 	  {
  		printf("ZIGB Enable\n");
  		sleep(0.5);
- 		device_config_response("ZIGB ENABLE", proto_id);			}
- 	 else if ((strcmp(cmd_id,"DISABLE") == 0))	   		{
+ 		device_config_response("ZIGB ENABLE", proto_id);
+ 	  }
+ 	 else if ((strcmp(cmd_id,"DISABLE") == 0))
+ 	  {
  		printf("ZIGB Disable\n");
  		sleep(1);
- 		device_config_response("ZIGB DISABLE", proto_id);			}
- 	 else										        {
- 	 		  err_val = false;					        }
+ 		device_config_response("ZIGB DISABLE", proto_id);
+ 	  }
+ 	 else
+ 	  {
+ 	   err_val = false;
+ 	  }
     break;
     case config :
-    	printf("testing enocean %s\n", nocean_id); //shibin /should be deleted
-    	if((strcmp(cmd_id,"ON12") == 0) ||(strcmp(nocean_id,"ON12") == 0))
-        	{
- 		printf("ZIGBEE data write done\n");
-			//zigb_data_write(zb_d2_on);
-			zigb_pkt_buffer(18,01,01);
-			zigb_data_write(zb_pkt_buff);
-			sleep(1);
-			memset(nocean_id, 0, 49);
-			device_config_response("ON12", proto_id);
+      if(strcmp(cmd_id,"ON12") == 0)
+       	{
+ 		 printf("ZIGBEE data write done\n");
+		 //zigb_data_write(zb_d2_on);
+		 zigb_pkt_buffer(18,01,01);
+		 zigb_data_write(zb_pkt_buff);
+		 sleep(1);
+		 device_config_response("ON12", proto_id);
 		}
- 	   else if(strcmp(cmd_id,"OFF12") == 0)	  	   		{
-			printf("ZIGBEE data write done\n");
-			zigb_pkt_buffer(18,00,01);
-			zigb_data_write(zb_pkt_buff);
-			sleep(1);
-			device_config_response("OFF12", proto_id);			}
- 	   else if(strcmp(cmd_id,"ON13") == 0)	  	        {
- 	   		printf("ZIGBEE data write done\n");
- 	   		//zigb_data_write(zb_d2_on);
- 	   		zigb_pkt_buffer(19,01,01);
- 	   		zigb_data_write(zb_pkt_buff);
- 	   		sleep(1);
- 	   		device_config_response("ON13", proto_id);			    }
- 	   else if(strcmp(cmd_id,"OFF13") == 0)	  	   		{
- 	   		printf("ZIGBEE data write done\n");
- 	   		zigb_pkt_buffer(19,00,01);
- 	   		zigb_data_write(zb_pkt_buff);
- 	   		sleep(1);
- 	   		device_config_response("OFF13", proto_id);			}
- 	   else if(strcmp(cmd_id,"ONALL") == 0)				{
-			printf("ZIGBEE data write done\n");
-			//zigb_data_write(zb_dAll_on);
-			zigb_pkt_buffer(18,01,04);
-			zigb_data_write(zb_pkt_buff);
-			sleep(1);
-			device_config_response("ONALL", proto_id);			}
- 	  else if(strcmp(cmd_id,"OFFALL") == 0)				{
-			 printf("ZIGBEE data write done\n");
-			 //zigb_data_write(zb_dAll_off);
-			 zigb_pkt_buffer(18,00,04);
-			 zigb_data_write(zb_pkt_buff);
-			 sleep(1);
-			 device_config_response("OFFALL", proto_id); 	  	  	}
- 	  else										 	    {
- 			printf("Invalid cmd\n\n");//need to delete
- 		  	  err_val = false;						 	}
- 	  break;
-    default :
- 	    	device_config_response("NOT SUPPORT", proto_id);
- 	    	printf("Success : Zigbee not support\n");
- 	    	err_val = false;
- 	  break;
- 	 	 	 	 	 	 	 	 	 	 	 	 	 	 }
+ 	   else if(strcmp(cmd_id,"OFF12") == 0)
+ 	    {
+		 printf("ZIGBEE data write done\n");
+		 zigb_pkt_buffer(18,00,01);
+		 zigb_data_write(zb_pkt_buff);
+		 sleep(1);
+		 device_config_response("OFF12", proto_id);
+ 	    }
+ 	   else if(strcmp(cmd_id,"ON13") == 0)
+ 	    {
+ 	   	 printf("ZIGBEE data write done\n");
+ 	   	 //zigb_data_write(zb_d2_on);
+ 	   	 zigb_pkt_buffer(19,01,01);
+ 	   	 zigb_data_write(zb_pkt_buff);
+ 	   	 sleep(1);
+ 	   	 device_config_response("ON13", proto_id);
+ 	    }
+ 	   else if(strcmp(cmd_id,"OFF13") == 0)
+ 	    {
+ 	   	 printf("ZIGBEE data write done\n");
+ 	   	 zigb_pkt_buffer(19,00,01);
+ 	   	 zigb_data_write(zb_pkt_buff);
+ 	   	 sleep(1);
+ 	   	 device_config_response("OFF13", proto_id);
+ 	    }
+ 	   else if(strcmp(cmd_id,"ONALL") == 0)
+ 	    {
+		 printf("ZIGBEE data write done\n");
+		 //zigb_data_write(zb_dAll_on);
+		 zigb_pkt_buffer(18,01,04);
+		 zigb_data_write(zb_pkt_buff);
+		 sleep(1);
+		 device_config_response("ONALL", proto_id);
+ 	    }
+ 	   else if(strcmp(cmd_id,"OFFALL") == 0)
+ 	    {
+		 printf("ZIGBEE data write done\n");
+		  //zigb_data_write(zb_dAll_off);
+		 zigb_pkt_buffer(18,00,04);
+		 zigb_data_write(zb_pkt_buff);
+		 sleep(1);
+		 device_config_response("OFFALL", proto_id);
+ 	    }
+ 	   else
+ 	    {
+ 		 printf("Invalid cmd\n\n");//need to delete
+ 		 err_val = false;
+ 	    }
+ 	 break;
+     default :
+ 	     device_config_response("NOT SUPPORT", proto_id);
+ 	     printf("Success : Zigbee not support\n");
+ 	     err_val = false;
+ 	 break;
+
+    }
    }
- else					{
-	 err_val = false;	}
- return err_val;
+  else
+   {
+	 err_val = false;
+   }
+  return err_val;
  }
 
 
@@ -719,11 +678,11 @@ int Gw_Auto_val_response(char* val)
 }
 #if 1
 
-/*==========================================================
+/*==================================================================
 * device_config_response response implementation function.
 * void return type
 * No more parameters as if now
-===========================================================*/
+===================================================================*/
 int device_config_response(char* val, char* protocol)
 {
  int loop = 0;
@@ -748,13 +707,14 @@ int device_config_response(char* val, char* protocol)
 
 	create_string_4json(loop);
 
-return 1;
+ return 1;
 }
-/*==========================================================
+/******************** End of device_config_response *****************/
+/*===================================================================
 * Heart beat response implementation function.
 * void return type
 * No more parameters as if now
-===========================================================*/
+* ====================================================================*/
 int Gw_HB_response(int topic_name)
 {
 	char Buf_1[50], Buf_2[50];
@@ -808,7 +768,11 @@ int Gw_HB_response(int topic_name)
 
   return 1;
 }
-
+/***************************************************************************
+ *
+ *
+ *
+ **************************************************************************/
 int Gw_WeatherRequest()
 {
   char loop = 0;
@@ -885,15 +849,15 @@ void create_string_4json(int length)
  ****************************************************************************************/
 void flush_buffer()
 {
- unsigned int loop = 0;
- loop = strlen(buffer_for_response);// flush the buffer with earlier data
-	while ( loop--  != 0 )	{
-	 buffer_for_response[loop] = 0;		}
-  global_release();
-  Buff_Fill = false; // make Buff_Fill flag false to for new set of commands
-  printf("\nSuccess : Input buffer flushed\n");
+	unsigned int loop = 0;
+	loop = strlen(buffer_for_response);		// flush the buffer with earlier data
+	while ( loop--  != 0 )					{
+		buffer_for_response[loop] = 0;		}
+	global_release();
+	Buff_Fill = false; 						// make Buff_Fill flag false to for new set of commands
+	printf("\nSuccess : Input buffer flushed\n");
 }
-
+/**************			flush_buffer ends	***************************************/
 /************************************************************************************
 *Release all the globals
 *
@@ -942,20 +906,49 @@ void global_release()
  **********************************************************/
 void weather_report_generator()
 {
-char data[200] = {0};
+	char data[200] = {0};
 
-//printf("hai\n");
-sprintf(data, "./bluetooth_voice_alert.sh ");
-sprintf(data + 27,"Current city temperature %s",kelvin);
-sprintf(data + 54," and humidity is %s",humidity);
-sprintf(data + 73,"");
-//printf("%s\n", data);
-system(data);
+	//printf("hai\n");
+	sprintf(data, "./bluetooth_voice_alert.sh ");
+	sprintf(data + 27,"Current city temperature %s",kelvin);
+	sprintf(data + 54," and humidity is %s",humidity);
+	sprintf(data + 73,"");
+	//printf("%s\n", data);
+	system(data);
 }
+/***************** End of function weather_report_generator   ********/
 
-/*
+/*********************************************************************
+ * *
+ * *
+ *
+ *
+ *********************************************************************/
 int bluetooth_switch()
-{	int test=0;
+{
+	int test=0;
+	sleep(2);
+	system("./bluetooth_voice_alert.sh you can operate  nano switch now");
+	sleep(2);
+	while(test<1)
+	{
+		char* nano = ble_data_read();
+		printf("Checking Nano Switch input: %s\n",nano);
+		sleep(1);
+		if(xstrsearch(nano, "ON12") != -1)			{
+				strcpy(cmd_id, "ON12");				}
+		if(xstrsearch(nano, "ON13") != -1)			{
+				strcpy(cmd_id, "ON13");				}
+		if(xstrsearch(nano, "OFF12") != -1)			{
+				strcpy(cmd_id, "OFF12");			}
+		if(xstrsearch(nano, "OFF13") != -1)			{
+				strcpy(cmd_id, "OFF13");			}
+		test=(test+1);
+	}
+	test=0;
+
+#if 0
+	int test=0;
         sleep(2);
         system("./bluetooth_voice_alert.sh you can operate  nano switch now");
         sleep(2);
@@ -1004,12 +997,16 @@ int bluetooth_switch()
         gln=0;
         }
         test=0;
-
+#endif
 	return 1;
 }
-*/
+/***************** End of function bluetooth_switch ************/
 
-
+/*****************************************************************
+ *
+ *
+ *
+ ****************************************************************/
 /* searches for the given pattern s2 into the string s1 */
 int xstrsearch ( char * s1, char * s2 )
 {
@@ -1031,3 +1028,4 @@ int xstrsearch ( char * s1, char * s2 )
     }
     return -1 ;
 }
+/*****************   End of function xstrsearch       ************/

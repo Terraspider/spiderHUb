@@ -16,6 +16,17 @@
 #define JSON_HDR_LMT 30
 /*========================================================*/
 
+
+void User_Id_res(int resp, int param);
+void Gw_Notific_Req();
+void create_string_4json(int length); 
+void flush_buffer();
+void global_release();
+void jsn_hdr_topic(void);
+void weather_report_generator();
+void zigb_pkt_buffer(char id, char val, char type);
+
+
 int system_handler(void);
 int add_User_id();
 int userid_auth();
@@ -24,13 +35,6 @@ int Gw_HB_response();
 int Gw_Details_response();
 int Gw_Auto_val_response(char* val);
 int device_config_response(char* val, char* proto);
-
-void User_Id_res(int resp, int param);
-void Gw_Notific_Req();
-void create_string_4json(int length); 
-void flush_buffer();
-void global_release();
-void jsn_hdr_topic(void);
 int validate_req_type(int count, char *dt_type);
 int user_management(char *cmd,char *usr_);
 int file_delete_userid(char *ur_id);
@@ -41,8 +45,11 @@ int zigbee_iface_mgt(void);
 int Zigbee_iface_mgt(void);
 int zwave_iface_mgt(void);
 int Device_configurations(int status);
-void zigb_pkt_buffer(char id, char val, char type);
 int bluetooth_switch(void);
+int xstrsearch ( char * s1, char * s2 );
+
+
+
 //data packets for response keys and values
 typedef struct 
 {
