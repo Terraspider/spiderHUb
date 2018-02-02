@@ -1,14 +1,31 @@
-/************************************************************************************
- * Copyright 2017
- *
- * Authors:             Shibin, Suraj R, Uma Maheswari
- * Name:		Main.c
- * Description:         Main program for Spider Hub. Subcribes to topics publised from smartphone.
+/********************************************************************************
+* Title                 :   Main program  
+* Filename              :   Main.c
+* Author                :   Shibin,SurajR,Uma
+* Origin Date           :   04/08/2017
+* Version               :   1.0.0
+* Compiler              :   GCC 
+* Target                :   AM335X
+* Notes                 :   None
+*
+************/
+/*************** SOURCE REVISION LOG *****************************************
+*
+*  Date    		Version		Author    	Description 
+*  dd/mm/yyyy  	1.0.0   	Shibin 	  
+*
+*******************************************************************************/
+/** @file  : Main.c 
+ *  Description:Main program for Spider Hub. Subcribes to topics publised from smartphone.
  *			Smartphone parses the subscribed json data and populates global variables
  *			Validates SpiderHub harware ID
- * Version:             Pre Alpha
- *gcc Application.c filesystem.c jsmn.c json.c jWrite.c lednotify.c User_management.c useroperation.c main.c -o spider -lpaho-mqtt3c
- *************************************************************************************/
+ *
+ *gcc Application.c filesystem.c jsmn.c json.c jWrite.c lednotify.c User_management.c 
+ *useroperation.c main.c -o spider -lpaho-mqtt3c
+*/
+/******************************************************************************
+ * Includes
+*******************************************************************************/
 
 #include <unistd.h>
 #include <errno.h>
@@ -34,12 +51,9 @@
 #include "jWrite.h"
 #include "ble.h"
 
-/****Here goes the headers for log libraries and protocol handler libraries****/
-/***public ip 111.93.133.142 ***/
-char topic_name[50];
-char gatewayid[10] = "12345";
-unsigned char ip_addr[50];
-
+/******************************************************************************
+* Module Preprocessor Constants
+*******************************************************************************/
 #define ONLINE_ADDRESS   "tcp://111.93.133.142:1883"
 #define OFFLINE_ADDRESS  "tcp://localhost:1883"
 #define CLIENTID    "SpiderHub"
@@ -47,12 +61,31 @@ unsigned char ip_addr[50];
 #define PAYLOAD     "Json_data"
 #define QOS         2
 #define TIMEOUT     10000L
+/******************************************************************************
+* Module Preprocessor Macros
+*******************************************************************************/
+
+/******************************************************************************
+* Module Typedefs
+*******************************************************************************/
+
+/******************************************************************************
+* Module Variable Definitions
+*******************************************************************************/
+/****Here goes the headers for log libraries and protocol handler libraries****/
+/***public ip 111.93.133.142 ***/
+char topic_name[50];
+char gatewayid[10] = "12345";
+unsigned char ip_addr[50];
 
 MQTTClient client;
 volatile MQTTClient_deliveryToken deliveredtoken;
 MQTTClient_connectOptions conn_opts = MQTTClient_connectOptions_initializer;
 MQTTClient_message pubmsg = MQTTClient_message_initializer;
 MQTTClient_deliveryToken token;
+/******************************************************************************
+* Function Prototypes
+*******************************************************************************/
 
 char Mqtt_connect(int inter_stat);
 int Online_status_publish();
@@ -67,14 +100,16 @@ mqtt_packs mtt_msg_pack[50];
 char Delivery_flag = 'T', mqtt_connection = 'F';
 char off_line_flag = true;
 
-
-
+/******************************************************************************
+* Function Definitions
+*******************************************************************************/
 /***********************************************************************************
- * function delivered
- * return type void
+ * Function :  delivered(void *context, MQTTClient_deliveryToken dt)
+ * Description : ?????
+ * @return type void
  * parameter void pointer
  *
- ***********************************************************************************/
+ ************************************************************************************/
 void delivered(void *context, MQTTClient_deliveryToken dt)
 {
 	printf("Success : Message with token value %d delivery confirmed\n", dt);
@@ -84,9 +119,10 @@ void delivered(void *context, MQTTClient_deliveryToken dt)
 }
 
 /***********************************************************************************
- *
- *
- *
+ * Function :  msgarrvd(void *context, char *topicName, int topicLen, MQTTClient_message *message)
+ * Description : ?????
+ * @return type int
+ * parameter >>>>>
  *
  ***********************************************************************************/
 int msgarrvd(void *context, char *topicName, int topicLen, MQTTClient_message *message)
