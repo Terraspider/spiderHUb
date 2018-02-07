@@ -90,7 +90,7 @@ void jsn_hdr_topic(void)
 	json_hdr_count[dev_reg_req].json_req_type = "DEV_REG_REQ";
 	json_hdr_count[dev_config_req].json_req_type = "DEV_CONFIG_REQ";
 	json_hdr_count[ble_proto].json_req_type = "BLE";
-	json_hdr_count[bluetooth_proto].json_req_type = "BLUETOOTH";
+	json_hdr_count[bluetooth_proto].json_req_type = "BLUETOOH";
 	json_hdr_count[zwave_proto].json_req_type = "Zwave";
 	json_hdr_count[zigbee_proto].json_req_type = "ZIGB";
 	json_hdr_count[inclusion].json_req_type = "INCLUSION";
@@ -166,6 +166,7 @@ int system_handler(void)
      		 break;
      	case dev_config_req :
      		 proto_dump = validate_req_type(ble_proto, proto_id);
+     		 //printf("%s\n", proto_dump);
      		 err_val = Device_configurations(proto_dump);
      		 break;
      	case weather_report :
@@ -174,9 +175,11 @@ int system_handler(void)
      		 err_val = false;
      		 break;
      	case enocean :
-		 	 printf("Now you can play with blue tooth switch \n");
-		 	 bluetooth_switch();
-		 	 break;
+		  printf("Now you can play with blue tooth switch \n");
+		  bluetooth_switch();
+		  proto_dump = validate_req_type(ble_proto, proto_id);
+                  err_val = Device_configurations(proto_dump);
+		  break;
 
      	default :
      		 printf("Success : Invalid request_type %s\n", req_type);
@@ -237,6 +240,7 @@ int validate_req_type(int count, char *dt_type)
 	 if(strcmp(dt_type, json_hdr_count[i].json_req_type) == 0)	  {
 	   printf("Hai %d %s %s\n", count, dt_type, json_hdr_count[i].json_req_type);
 	   break;	}
+	 //printf("Hai %d %s %s\n", count, dt_type, json_hdr_count[i].json_req_type);
 	}
  return i;
 }
@@ -339,10 +343,10 @@ int zigbee_iface_mgt()
 int Device_configurations(int status)
 {
  int err_val = true;
- char streaming_cmd[500] = {0};
-
+ char streaming_cmd[500] = {0}, cam_motion[200]= "";
   if (status == bluetooth_proto)
   {
+	  printf("device configuration");
    switch(validate_req_type(audio, dev_type))
    {
     case audio :
@@ -366,17 +370,18 @@ int Device_configurations(int status)
 	   else
 	   {
 		   err_val = false;
+		   printf("else of audio");
 	   }
 	   break;
     case config :
-#if 0
+#if 1
 	   if((strcmp(cmd_id,"PLAY") == 0))
 	   {
 		   printf("Success : PLAY Music\n");
 		   system("./start_music.sh");
 		   device_config_response("CONFIG PLAY", proto_id);	  	}
 	   else if((strcmp(cmd_id,"STOP") == 0))		    {
-		   printf("Success : PAUSE Music\n");
+		   printf("Success : STOP Music\n");
 		   system("./stop_music.sh");
 		   device_config_response("CONFIG STOP", proto_id);		}
 	   else if((strcmp(cmd_id,"PAUSE") == 0))		    {
@@ -476,7 +481,7 @@ int Device_configurations(int status)
     break;
 
     case int_motion :
-     char cam_motion[200]="";
+    // char cam_motion[200];
 	 printf("Enabling camera controls, Please wait\n");
 	 strcpy(cam_motion,"./Camera_motion.sh ");
 	 strcat(cam_motion, CameraIP);
@@ -906,15 +911,16 @@ void global_release()
  **********************************************************/
 void weather_report_generator()
 {
-	char data[200] = {0};
+	char data[300] = {0};
 
-	//printf("hai\n");
+	printf("hai its a weather report %s and  %s \n",kelvin , humidity);
 	sprintf(data, "./bluetooth_voice_alert.sh ");
-	sprintf(data + 27,"Current city temperature %s",kelvin);
-	sprintf(data + 54," and humidity is %s",humidity);
+	sprintf(data + 27,"Current city temperature is:%s,",kelvin);
+	sprintf(data + 56," and humidity is:%s",humidity);
 	sprintf(data + 73,"");
 	//printf("%s\n", data);
 	system(data);
+
 }
 /***************** End of function weather_report_generator   ********/
 

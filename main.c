@@ -1,31 +1,14 @@
-/********************************************************************************
-* Title                 :   Main program  
-* Filename              :   Main.c
-* Author                :   Shibin,SurajR,Uma
-* Origin Date           :   04/08/2017
-* Version               :   1.0.0
-* Compiler              :   GCC 
-* Target                :   AM335X
-* Notes                 :   None
-*
-************/
-/*************** SOURCE REVISION LOG *****************************************
-*
-*  Date    		Version		Author    	Description 
-*  dd/mm/yyyy  	1.0.0   	Shibin 	  
-*
-*******************************************************************************/
-/** @file  : Main.c 
- *  Description:Main program for Spider Hub. Subcribes to topics publised from smartphone.
+/************************************************************************************
+ * Copyright 2017
+ *
+ * Authors:             Shibin, Suraj R, Uma Maheswari
+ * Name:		Main.c
+ * Description:         Main program for Spider Hub. Subcribes to topics publised from smartphone.
  *			Smartphone parses the subscribed json data and populates global variables
  *			Validates SpiderHub harware ID
- *
- *gcc Application.c filesystem.c jsmn.c json.c jWrite.c lednotify.c User_management.c 
- *useroperation.c main.c -o spider -lpaho-mqtt3c
-*/
-/******************************************************************************
- * Includes
-*******************************************************************************/
+ * Version:             Pre Alpha
+ *gcc Application.c filesystem.c jsmn.c json.c jWrite.c lednotify.c User_management.c useroperation.c main.c -o spider -lpaho-mqtt3c
+ *************************************************************************************/
 
 #include <unistd.h>
 #include <errno.h>
@@ -51,9 +34,12 @@
 #include "jWrite.h"
 #include "ble.h"
 
-/******************************************************************************
-* Module Preprocessor Constants
-*******************************************************************************/
+/****Here goes the headers for log libraries and protocol handler libraries****/
+/***public ip 111.93.133.142 ***/
+char topic_name[50];
+char gatewayid[10] = "12345";
+unsigned char ip_addr[50];
+unsigned char version[10] = "VER_1_3_D";
 #define ONLINE_ADDRESS   "tcp://111.93.133.142:1883"
 #define OFFLINE_ADDRESS  "tcp://localhost:1883"
 #define CLIENTID    "SpiderHub"
@@ -61,31 +47,12 @@
 #define PAYLOAD     "Json_data"
 #define QOS         2
 #define TIMEOUT     10000L
-/******************************************************************************
-* Module Preprocessor Macros
-*******************************************************************************/
-
-/******************************************************************************
-* Module Typedefs
-*******************************************************************************/
-
-/******************************************************************************
-* Module Variable Definitions
-*******************************************************************************/
-/****Here goes the headers for log libraries and protocol handler libraries****/
-/***public ip 111.93.133.142 ***/
-char topic_name[50];
-char gatewayid[10] = "12345";
-unsigned char ip_addr[50];
 
 MQTTClient client;
 volatile MQTTClient_deliveryToken deliveredtoken;
 MQTTClient_connectOptions conn_opts = MQTTClient_connectOptions_initializer;
 MQTTClient_message pubmsg = MQTTClient_message_initializer;
 MQTTClient_deliveryToken token;
-/******************************************************************************
-* Function Prototypes
-*******************************************************************************/
 
 char Mqtt_connect(int inter_stat);
 int Online_status_publish();
@@ -100,16 +67,14 @@ mqtt_packs mtt_msg_pack[50];
 char Delivery_flag = 'T', mqtt_connection = 'F';
 char off_line_flag = true;
 
-/******************************************************************************
-* Function Definitions
-*******************************************************************************/
+
+
 /***********************************************************************************
- * Function :  delivered(void *context, MQTTClient_deliveryToken dt)
- * Description : ?????
- * @return type void
+ * function delivered
+ * return type void
  * parameter void pointer
  *
- ************************************************************************************/
+ ***********************************************************************************/
 void delivered(void *context, MQTTClient_deliveryToken dt)
 {
 	printf("Success : Message with token value %d delivery confirmed\n", dt);
@@ -119,10 +84,9 @@ void delivered(void *context, MQTTClient_deliveryToken dt)
 }
 
 /***********************************************************************************
- * Function :  msgarrvd(void *context, char *topicName, int topicLen, MQTTClient_message *message)
- * Description : ?????
- * @return type int
- * parameter >>>>>
+ *
+ *
+ *
  *
  ***********************************************************************************/
 int msgarrvd(void *context, char *topicName, int topicLen, MQTTClient_message *message)
@@ -238,6 +202,9 @@ char Mqtt_connect(int internet_stat)
 	  MQTTCLIENT_PERSISTENCE_NONE, NULL);
 	  printf("Success : Gateway_ONLINE\n");
 	  system("./bluetooth_voice_alert.sh I am going online");
+	  sleep(1);
+	  system("kill $(ps aux | grep 'filereceive.py' | awk '{print $2}')");
+	  system("python filereceive.py > /dev/null 2>&1 &");
 	  inter_stat = 0;
 	  off_line_flag = false;
 	  fprintf(fileptr,"%s","ONLINE"); 	}
@@ -294,7 +261,12 @@ void main()
 	z_wave_reset_count = 0;
 	t = time(NULL); //Get latest Epoch Time
 
-	printf("\n\n:::::SpiderHub Started:::::\n\n");
+	printf("\n\n:::::Welcome to SpiderHub:::::\n\n");
+	printf("*********** %s ************\n", version);
+        FILE *ver = fopen("versions.txt","w");
+        fprintf(ver,"%s",version);
+	fclose(ver);
+	//system("./ota_update.sh > /dev/null 2>&1 &");
 	if( access("registered_user_ids.txt", F_OK ) != -1 )  {
     	printf("Registered_user_ids DB file found!!!\n"); }
 	else {
@@ -309,53 +281,7 @@ void main()
 	} // file doesn't exist
 
 	jsn_hdr_topic();
-/*	int test=0;
-	sleep(2);
-	system("./bluetooth_voice_alert.sh can you click Nano Switch?");
-	sleep(2);
-	while(test<=4)
-	{
-	char* nano = ble_data_read();
-	printf("Checking Nano Switch input: %s\n",nano);
 
-       // Returns first token
-       char *token = strtok(nano, ",");
-       //int gln=0;
-       // Keep printing tokens while one of the
-       // delimiters present in nano[].
-        while (token != NULL)
-        {
-	if(gln==0){
-        printf("gw_id[]: %s\n", token);
-	//gw_id=token[];
-	token = strtok(NULL, ",");
-	gln++;
-	}
-	else if(gln==1){
-        printf("proto_id[]: %s\n", token);
-        //proto_id=token[];
-        token = strtok(NULL, ",");
-	gln=gln++;
-        }
-        else if(gln==2){
-        printf("dev_type[]: %s\n", token);
-        //dev_type=token[];
-        token = strtok(NULL, ",");
-	gln=gln++;
-        }
-        else if(gln==3){
-        printf("cmd_id[]: %s\n", token);
-        //cmd_id=token[];
-        token = strtok(NULL, ",");
-	gln=gln++;
-	}
-	}
-	sleep(1);
-	test=(test+1);
-	gln=0;
-	}
-	test=0;
-*/
 #if 0
 	MQTTClient_willOptions will_opts = MQTTClient_willOptions_initializer;
 	MQTTClient_connectOptions conn_opts = MQTTClient_connectOptions_initializer;
