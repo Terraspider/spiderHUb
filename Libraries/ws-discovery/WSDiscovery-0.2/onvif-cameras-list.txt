@@ -1,0 +1,1 @@
+urn:uuid:48534d41-5254-4c49-4e4b-02-0B-D1-F0-0A-F0:http://192.168.100.158:10080/onvif/device_service

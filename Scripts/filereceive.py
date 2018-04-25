@@ -2,7 +2,7 @@ import paho.mqtt.client as mqtt
 import time
 
 client = mqtt.Client("FILE_RECEIVE")
-client.connect("111.93.133.142", 1883)
+client.connect("106.51.74.34", 1883)
 client.subscribe("receive_file",0)
 
 print "<-----subscribed------>"

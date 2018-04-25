@@ -11,9 +11,12 @@
 ************/
 /*************** SOURCE REVISION LOG *****************************************
 *
-*  Date    		Version		Authors    	Description
-*  19/02/2018  		VER_1_3_D   	Shibin,Suraj
+*  Date    		    Version		      Authors    	Description
+*  07/03/2018  		VER_1_3_E   	Shibin,Suraj
 *
+*  Added Nocean Zwave and zigbee inter protocol drive.
+*  Remove weather report from Application.
+*  Change in delay of N ocean switch function
 *******************************************************************************/
 /** @file      :	main.c
  *  Description:	Main program for Spider Hub. Subcribes to topics publised from smartphone.
@@ -41,20 +44,20 @@
 #include <arpa/inet.h>
 
 #include "MQTTClient.h"
-#include "/SpiderHub/Header_Files/json.h"
-#include "/SpiderHub/Header_Files/jsmn.h"
-#include "/SpiderHub/Header_Files/filesystem.h"
-#include "/SpiderHub/Header_Files/Application.h"
-#include "/SpiderHub/Header_Files/jWrite.h"
-#include "/SpiderHub/Header_Files/ble.h"
+#include "../Header_Files/json.h"
+#include "../Header_Files/jsmn.h"
+#include "../Header_Files/filesystem.h"
+#include "../Header_Files/Application.h"
+#include "../Header_Files/jWrite.h"
+#include "../Header_Files/ble.h"
 
 /****Here goes the headers for log libraries and protocol handler libraries****/
-/***public ip 111.93.133.142 ***/
+/***public ip 106.51.74.34 ***/
 char topic_name[50];
 char gatewayid[10] = "12345";
 unsigned char ip_addr[50];
-unsigned char version[10] = "VER_1_3_D";
-#define ONLINE_ADDRESS   "tcp://111.93.133.142:1883"
+unsigned char version[10] = "VER_1_3_E"; //A : for Demo editFSV added
+#define ONLINE_ADDRESS   "tcp://106.51.74.34:1883"
 #define OFFLINE_ADDRESS  "tcp://localhost:1883"
 #define CLIENTID    "SpiderHub"
 //#define TOPIC	    topic_name
@@ -69,7 +72,7 @@ MQTTClient_message pubmsg = MQTTClient_message_initializer;
 MQTTClient_deliveryToken token;
 
 char Mqtt_connect(int inter_stat);
-int Online_status_publish();
+
 char *content;
 char* log_content;
 //char gatewayid[10] = "12345";
@@ -223,7 +226,7 @@ char Mqtt_connect(int internet_stat)
 	  off_line_flag = false;
 	  fprintf(fileptr,"%s","ONLINE"); 	}
    	fclose(fileptr);
-	conn_opts.keepAliveInterval = 30;
+	conn_opts.keepAliveInterval = 60;
 	conn_opts.cleansession = 1;
 	conn_opts.will = &will_opts;
 	set_ip();
@@ -243,6 +246,7 @@ char Mqtt_connect(int internet_stat)
 	  return mqtt_status_flag;	}
 //#if 0
 		char shell_file_name[50];
+		printf("zwave call...with internet status %d\n\n",internet_stat);
 		sprintf(shell_file_name,"/SpiderHub/Scripts/zwaveCall.sh %d",internet_stat);
 		system(shell_file_name);
 //#endif
@@ -251,12 +255,12 @@ char Mqtt_connect(int internet_stat)
 	"Press Q<Enter> to quit\n\n", topic_name, CLIENTID, QOS);
 
 	MQTTClient_subscribe(client, topic_name, QOS);
-	sleep(5);
-	if(internet_stat != 0){
-		flush_buffer();
-		Gw_WeatherRequest();
-		Online_status_publish();
-	}
+	sleep(3);
+	//if(internet_stat != 0){
+		//flush_buffer();
+		//Gw_WeatherRequest();
+		//Online_status_publish();
+	//}
 
 	return mqtt_status_flag;
 }
@@ -409,14 +413,14 @@ int Online_status_publish()
 	publish = JSON_GENERATOR(buffer_for_response);
 	pubmsg.payload = publish;
 	pubmsg.payloadlen = strlen(publish);
-	pubmsg.qos = QOS;
+	pubmsg.qos = 0;
 	pubmsg.retained = 0;
 	status = MQTTClient_publishMessage(client,topic_publish, &pubmsg, &token);
 	printf("Success : Waiting for up to %d seconds for publication of %s\n"
 	"on topic %s for client with ClientID: %s\n",
 	(int)(TIMEOUT/1000),publish , topic_publish, CLIENTID);
 	printf("\nSuccess : Published\n");
-
+    sleep(2);
 	return status;
 }
 

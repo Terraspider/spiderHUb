@@ -1,5 +1,5 @@
 #!/bin/bash
-cd /root/Zwave/open-zwave/node_modules/openzwave-shared/
+cd /SpiderHub/Libraries/Zwave/open-zwave/node_modules/openzwave-shared/
 if [ $1 == 0 ]
 then 
 	echo "run zwave code with localhost"

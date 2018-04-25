@@ -29,10 +29,10 @@
 #include <string.h>
 #include <stdbool.h>
 #include <time.h>
-#include "/SpiderHub/Header_Files/Application.h"
-#include "/SpiderHub/Header_Files/json.h"
-#include "/SpiderHub/Header_Files/lednotify.h"
-#include "/SpiderHub/Header_Files/ble.h"
+#include "../Header_Files/Application.h"
+#include "../Header_Files/json.h"
+#include "../Header_Files/lednotify.h"
+#include "../Header_Files/ble.h"
 
 #include <sys/socket.h>
 #include <sys/ioctl.h>
@@ -86,7 +86,11 @@ enum head_count_t
 	weather_report,
 	enocean,
 };
-
+/***************************************************************************************
+ * Update all the topics,commands and actions to local buff, Similar to MQTT msg payload
+ * These commands are compared basically with incoming MQTT request type message
+ * No return type and no parameters, used for loading the config.
+ **************************************************************************************/
 void jsn_hdr_topic(void)
 {
 	json_hdr_count[gw_reg_req].json_req_type = "GW_REG_REQ";
@@ -128,9 +132,11 @@ void jsn_hdr_topic(void)
  }
 
 /*****************************************************************
-*
-*
-*
+*Called by Main, if there any message payload arrives main call this
+*function for parameter validation and take neccessary action as per request
+*and construct the response structure for reply
+* Int : return type for giving the feed back to main
+* Parameter : no parameters are passed.
 ****************************************************************/
 int system_handler(void)
 {
@@ -185,8 +191,10 @@ int system_handler(void)
      	case enocean :
 		  printf("Now you can play with blue tooth switch \n");
 		  bluetooth_switch();
+		  weather_report_generator();
+		  Online_status_publish();
 		  proto_dump = validate_req_type(ble_proto, proto_id);
-                  err_val = Device_configurations(proto_dump);
+          err_val = Device_configurations(proto_dump);
 		  break;
 
      	default :
@@ -236,7 +244,7 @@ int peripheral_iface_mgt(char proto[])
 
 /*******************************************************************
 *validate_req_type : Packet related data handling
-*
+*validate input request type with internal directory and ack the same
 *
 *******************************************************************/
 int validate_req_type(int count, char *dt_type)
@@ -254,7 +262,7 @@ int validate_req_type(int count, char *dt_type)
 }
 
  /*=================== ======================= =========================
- *ble_iface_mgt : .
+ *ble_iface_mgt : Ble for inclusion or deletion.
  *return type is int for verification status
  *param is null
  ======================================================================*/
@@ -427,6 +435,7 @@ int Device_configurations(int status)
 	 }
    break;
    case config :
+#if 0
 	   if(strcmp(cmd_id,"UP") == 0)
 	   {
 		//send "up" command to ble for device drive
@@ -443,6 +452,23 @@ int Device_configurations(int status)
 		sleep(2);
 		device_config_response("DOWN", proto_id);
 	   }
+#endif
+	   if(strcmp(cmd_id,"ON") == 0)
+	   	   {
+	   		//send "up" command to ble for device drive
+	   		ble_data_write("aa");
+	   		printf("FSV Valve Open\n");
+	   		sleep(1);
+	   		device_config_response("ON", proto_id);
+	   	   }
+	   	   else if((strcmp(cmd_id,"OFF") == 0))
+	   	   {
+	   		//send "down" command to ble for device drive
+	   		ble_data_write("ss");
+	   		printf("FSV Valve Close\n");
+	   		sleep(1);
+	   		device_config_response("OFF", proto_id);
+	   	   }
 	   break;
    default :
 	    device_config_response("NOT SUPPORT", proto_id);
@@ -480,6 +506,7 @@ int Device_configurations(int status)
 	 printf("Success : user ip: %s\r\n",UserIP);
 	 strcpy(streaming_cmd,"ffmpeg -rtsp_transport tcp -i rtsp://");
 	 strcat(streaming_cmd,CameraIP);
+	 //print("Camera IP:%s\n",CameraIP);
 	 strcat(streaming_cmd,":10554/tcp/av0_0 -preset slow -c:v copy -f mpegts udp://");
 	 strcat(streaming_cmd,UserIP);
 	 strcat(streaming_cmd,":1111 -hide_banner");
@@ -915,13 +942,37 @@ void global_release()
 }
 
 /***********************************************************
- * *
+ * * Changed Functionality for Nocean Zwave Driving
  *
  **********************************************************/
 void weather_report_generator()
 {
-	char data[300] = {0};
+	/*char data[300] = {0};
+	printf("hai its a weather report alert/n");*/
 
+	int loop = 0;
+
+		response_data[loop].key= "req_type";
+		response_data[loop].value = "NOCEAN_DRIVE";
+		response_data[++loop].key= "Gw_Id";
+		response_data[loop].value = gw_id;
+		response_data[++loop].key= "trans_id"; //collected from Req message
+		response_data[loop].value = trans_id;
+		response_data[++loop].key= "user_Id";
+		response_data[loop].value = (user_id ) ? user_id : "0000";
+		response_data[++loop].key= "message";
+		response_data[loop].value = cmd_id;
+		response_data[++loop].key= "timeStamp";
+		response_data[loop].value = timestamp; //time stamp should be updated
+		//printf("Invalid User check response buffer:done\r\n");
+
+		strcpy(topic_publish,"NOCEAN_DRIVE/12345"); // give the topic to publish
+
+		create_string_4json(loop);
+
+	  //return 1;
+
+	/*
 	printf("hai its a weather report %s and  %s \n",kelvin , humidity);
 	sprintf(data, "/SpiderHub/Scripts/bluetooth_voice_alert.sh ");
 	sprintf(data + 27,"Current city temperature is:%s,",kelvin);
@@ -929,90 +980,48 @@ void weather_report_generator()
 	sprintf(data + 73,"");
 	//printf("%s\n", data);
 	system(data);
-
+	*/
 }
 /***************** End of function weather_report_generator   ********/
 
 /*********************************************************************
+ * * read data from uart and compare data with internal instruction
  * *
- * *
- *
  *
  *********************************************************************/
 int bluetooth_switch()
 {
 	int test=0;
-	sleep(2);
+	unsigned long time_now;
+	sleep(0.5);
 	system("/SpiderHub/Scripts/bluetooth_voice_alert.sh you can operate  nano switch now");
-	sleep(2);
-	while(test<1)
+	//sleep(2);
+	time_t t;
+	t = time(NULL);
+	time_now = t;
+	while(test < 1)
 	{
 		char* nano = ble_data_read();
 		printf("Checking Nano Switch input: %s\n",nano);
 		sleep(1);
 		if(xstrsearch(nano, "ON12") != -1)			{
-				strcpy(cmd_id, "ON12");				}
+				strcpy(cmd_id, "ON12");
+				break;}
 		if(xstrsearch(nano, "ON13") != -1)			{
-				strcpy(cmd_id, "ON13");				}
+				strcpy(cmd_id, "ON13");
+				break;}
 		if(xstrsearch(nano, "OFF12") != -1)			{
-				strcpy(cmd_id, "OFF12");			}
+				strcpy(cmd_id, "OFF12");
+				break;}
 		if(xstrsearch(nano, "OFF13") != -1)			{
-				strcpy(cmd_id, "OFF13");			}
-		test=(test+1);
+				strcpy(cmd_id, "OFF13");
+				break;}
+		t = time(NULL);
+		if (t >= time_now + 60){
+		test += 1;}
 	}
 	test=0;
 
-#if 0
-	int test=0;
-        sleep(2);
-        system("/SpiderHub/Scripts/bluetooth_voice_alert.sh you can operate  nano switch now");
-        sleep(2);
-	while(test<1)
-        {
-        char* nano = ble_data_read();
-        printf("Checking Nano Switch input: %s\n",nano);
-
-       // Returns first token
-       char *token = strtok(nano, ",");
-       printf("%s\n", token);
-       //int gln=0;
-       // Keep printing tokens while one of the
-       // delimiters present in nano[].
-        while (token != NULL)
-        {
-        if(gln==0){
-        printf("gw_id[]: %s\n", token);
-        strcpy(gw_id,token);
-        token = strtok(NULL, ",");
-        gln++;
-        }
-        else if(gln==1){
-        printf("proto_id[]: %s\n", token);
-        //strcpy(proto_id,token);
-        token = strtok(NULL, ",");
-        gln++;
-        }
-        else if(gln==2){
-        printf("dev_type[]: %s\n", token);
-        //strcpy(dev_type,token);
-        token = strtok(NULL, ",");
-        gln++;
-        }
-        else if(gln==3){
-        printf("cmd_id[]: %s\n", token);
-        strcpy(cmd_id,token);
-        token = strtok(NULL, ",");
-        gln++;
-        }
-                 proto_dump = validate_req_type(ble_proto, proto_id);
-                 err_val = Device_configurations(proto_dump);
-        }
-        sleep(1);
-        test=(test+1);
-        gln=0;
-        }
-        test=0;
-#endif
 	return 1;
 }
 /***************** End of function bluetooth_switch ************/
