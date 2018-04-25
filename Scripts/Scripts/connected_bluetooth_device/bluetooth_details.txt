@@ -1,0 +1,5 @@
+[bluetooth]# [0;94m[bluetooth][0m# [K[[0;92mNEW[0m] Controller 88:4A:EA:62:18:CB beaglebone [default]
+[0;94m[bluetooth][0m# [K[[0;92mNEW[0m] Device E4:46:DA:0D:44:40 Suraj R
+[0;94m[bluetooth][0m# [K[[0;92mNEW[0m] Device 00:1A:7D:E2:3D:5E CORSECA
+[0;94m[bluetooth][0m# [K[0;94m[bluetooth][0m# [K[[0;91mDEL[0m] Controller 88:4A:EA:62:18:CB beaglebone [default]
+[0;94m[bluetooth][0m# [bluetooth]# [K
