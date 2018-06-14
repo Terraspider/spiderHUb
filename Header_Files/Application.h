@@ -26,7 +26,6 @@ int Gw_Auto_val_response(char* val);
 int device_config_response(char* val, char* proto);
 int bluetooth_switch(void);
 int xstrsearch ( char * s1, char * s2 );
-int Online_status_publish();
 
 void User_Id_res(int resp, int param);
 void Gw_Notific_Req();
@@ -48,6 +47,7 @@ int zwave_iface_mgt(void);
 int Device_configurations(int status);
 void zigb_pkt_buffer(char id, char val, char type);
 int bluetooth_switch(void);
+int Online_status_publish();
 //data packets for response keys and values
 typedef struct 
 {
