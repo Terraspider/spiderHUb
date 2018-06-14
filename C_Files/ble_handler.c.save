@@ -18,6 +18,7 @@
  *  - This is to switch OFF BLE device on BBG.
  */
 #include <stdio.h>
+#include <time.h>
 #include "/SpiderHub/Header_Files/core.h"
 #include "/SpiderHub/Header_Files/gpio.h"
 #include "/SpiderHub/Header_Files/ble.h"
@@ -28,18 +29,18 @@
 
 char* ble_data_read()
 {
+        //time_t t;
+	//unsigned long int time_now = 0;
 	static unsigned char receive[100];
-
+        //t = time(NULL);
 	init_bbc_lib();
 	uart_properties *uart = malloc(sizeof(uart_properties));
 	uart->uart_id = uart4;
 	uart->baudrate = B115200;
 
 	uint8_t isOpen = uart_open(uart);
-
-
-		if (isOpen == 0)
-		{
+	if (isOpen == 0)
+	{
 	// Read data from uart1
 	if (uart_read(uart, receive, 100) < 0)
 	{
